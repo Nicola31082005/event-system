@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RSVPStatus {
+  PENDING
+  APPROVED
+  DENIED
+  WAITLIST
+  CANCELLED
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+  COMPLETED
+}
+
+model User {
+  id          String    @id @default(uuid())
+  clerkUserId String    @unique
+  email       String?   @unique
+  name        String?
+  bio         String?   @db.Text
+  imageUrl    String?   // Profile image from Clerk
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  // Relations
+  events      Event[]   // Events organized by the user
+  rsvps       RSVP[]    // Events the user is attending
+  chats       Chat[]
+}
+
+model Event {
+  id          String     @id @default(uuid())
+  title       String
+  description String     @db.Text
+  location    String?    // Physical address or virtual link
+  startDate   DateTime
+  endDate     DateTime
+  imageUrl    String?
+  capacity    Int?       // Maximum number of attendees
+  status      EventStatus @default(PUBLISHED)
+  isPrivate   Boolean    @default(false)
+  tags        String[]
+  // Relations
+  organizer   User       @relation(fields: [organizerId], references: [id], onDelete: Cascade)
+  organizerId String
+  rsvps       RSVP[]
+  chats       Chat[]
+  // Timestamps
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([organizerId])
+  @@index([status])
+}
+
+model RSVP {
+  id        String     @id @default(uuid())
+  status    RSVPStatus @default(PENDING)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  event     Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId   String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@unique([userId, eventId])
+  @@index([userId])
+  @@index([eventId])
+}
+
+model Chat {
+  id        String   @id @default(uuid())
+  message   String   @db.Text
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([eventId])
+}
