@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import Navigation from './Navigation';
+import { SignedIn, SignedOut, UserButton, SignInButton, SignOutButton } from '@clerk/nextjs';
+
 
 export default function Header() {
   return (
@@ -11,12 +13,32 @@ export default function Header() {
           </Link>
           <Navigation />
           <div className="hidden sm:flex sm:items-center">
-            <Link
-              href="/signin"
-              className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors"
-            >
-              Sign In
-            </Link>
+            <SignedOut>
+              <SignInButton
+                mode="modal"
+                className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors"
+              >
+                Sign In
+              </SignInButton>
+            </SignedOut>
+
+            <SignedIn>
+              <div className="flex items-center space-x-4">
+                <UserButton
+                  appearance={{
+                    elements: {
+                      avatarBox: "w-10 h-10 rounded-full",
+                      userButtonTrigger: "focus:shadow-none",
+                    }
+                  }}
+                />
+                <SignOutButton>
+                  <button className="text-gray-500 hover:text-indigo-600 text-sm font-medium transition-colors">
+                    Sign Out
+                  </button>
+                </SignOutButton>
+              </div>
+            </SignedIn>
           </div>
         </div>
       </div>
