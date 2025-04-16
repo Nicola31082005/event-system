@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function CreateEvent() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -166,15 +168,13 @@ export default function CreateEvent() {
 
       console.log("Form submitted:", eventData);
 
-      // This would be replaced with actual API call
-    //   await new Promise(resolve => setTimeout(resolve, 1500));
       const event = await fetch("/api/events", {
         method: "POST",
         body: JSON.stringify(eventData),
       });
 
       // Redirect to event page or success page
-      // router.push("/events/success");
+      router.push("/events/success");
 
       alert("Event created successfully!");
     } catch (error) {
