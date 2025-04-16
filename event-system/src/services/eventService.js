@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import userService from "./userService";
+import { auth, currentUser } from "@clerk/nextjs/server";
 
 const prisma = new PrismaClient();
 
@@ -21,9 +22,12 @@ export default {
     });
   },
 
-  createEvent: async (data, clerkUserId) => {
+  createEvent: async (data) => {
+    const { userId } = await auth();
+
     // Get the database user associated with the Clerk user
-    const dbUser = await userService.getUserByClerkId(clerkUserId);
+    const dbUser = await userService.getUserByClerkId(userId);
+
     if (!dbUser) {
       throw new Error("User not found");
     }
