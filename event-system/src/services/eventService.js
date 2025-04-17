@@ -43,9 +43,11 @@ export default {
     });
   },
 
-  deleteEvent: async (id, clerkUserId) => {
+  deleteEvent: async (id) => {
+    const { userId } = await auth();
+
     // Get the database user associated with the Clerk user
-    const dbUser = await userService.getUserByClerkId(clerkUserId);
+    const dbUser = await userService.getUserByClerkId(userId);
     if (!dbUser) {
       throw new Error("User not found");
     }
