@@ -1,11 +1,17 @@
-export default function EventsLayout({ children, list, upcoming, featured, params }) {
-  // Check if we're on an event details page
-  // This technique works in Next.js server components by examining the structure of parallel slots
-  const isEventDetailsPage = !list && !upcoming && !featured;
+'use client';
+
+import { usePathname } from 'next/navigation';
+
+export default function EventsLayout({ children, list, upcoming, featured }) {
+  // Get the current path and check if we're on a details page
+  const pathname = usePathname();
+  const isEventDetailsPage = pathname.match(/^\/events\/[^\/]+$/);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Events</h1>
+      <h1 className="text-3xl font-bold mb-8">
+        {isEventDetailsPage ? 'Event Details' : 'Events'}
+      </h1>
 
       {isEventDetailsPage ? (
         // If we're on an event details page, only show the children (event details)

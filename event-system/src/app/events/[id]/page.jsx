@@ -37,6 +37,7 @@ function formatDate(date) {
 export default async function EventPage({ params }) {
     const { id } = await params;
   const event = await eventService.getEventById(id);
+
   if (!event) return notFound();
 
   return (
@@ -52,33 +53,33 @@ export default async function EventPage({ params }) {
           />
         </div>
 
-        {/* Event details */}
-        <div className="space-y-4">
-          <h1 className="text-3xl font-bold">{event.title}</h1>
+      {/* Event details */}
+      <div className="space-y-4">
+        <h1 className="text-3xl font-bold">{event.title}</h1>
 
-          <p>Organized by {event.organizer.name}</p>
+        <p>Organized by {event.organizer.name}</p>
 
-          <div className="space-y-2">
-            <div>
-              <strong>When:</strong> {formatDate(event.date)}
-            </div>
-
-            <div>
-              <strong>Where:</strong> {event.location}
-            </div>
-
-            <div>
-              <strong>Capacity:</strong> {event.capacity
-                ? `${event.attendeeCount}/${event.capacity} attendees`
-                : 'Unlimited attendees'}
-            </div>
+        <div className="space-y-2">
+          <div>
+            <strong>When:</strong> {formatDate(event.date)}
           </div>
 
-          <div className="pt-4 border-t">
-            <h2 className="text-xl font-semibold mb-2">About this event</h2>
-            <p>{event.description}</p>
+          <div>
+            <strong>Where:</strong> {event.location}
+          </div>
+
+          <div>
+            <strong>Capacity:</strong> {event.capacity
+              ? `${event.attendeeCount}/${event.capacity} attendees`
+              : 'Unlimited attendees'}
           </div>
         </div>
+
+        <div className="pt-4 border-t">
+          <h2 className="text-xl font-semibold mb-2">About this event</h2>
+          <p>{event.description}</p>
+        </div>
+      </div>
 
         {/* RSVP Button Placeholder */}
         <div className="mt-6 pt-6 border-t">
