@@ -1,48 +1,10 @@
 import EventListItem from "@/components/EventListItem";
+import eventService from "@/services/eventService";
 
-// This would normally come from a database
-const MOCK_EVENTS = [
-  {
-    id: "1",
-    title: "Web Development Conference 2023",
-    description: "Join us for the biggest web development conference of the year. Learn from industry experts about the latest trends and technologies in web development.",
-    startDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
-    location: "Tech Center, San Francisco",
-    tags: ["Technology", "Web Development", "Coding"],
-    imageUrl: null,
-  },
-  {
-    id: "2",
-    title: "Startup Networking Mixer",
-    description: "Connect with founders, investors, and tech enthusiasts in this casual networking event. Great opportunity to meet potential partners and mentors.",
-    startDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-    location: "Innovation Hub, Boston",
-    tags: ["Networking", "Business", "Startup"],
-    imageUrl: null,
-  },
-  {
-    id: "3",
-    title: "AI and Machine Learning Workshop",
-    description: "Hands-on workshop on artificial intelligence and machine learning. Build your own ML models and learn about practical applications in various industries.",
-    startDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    location: "Data Science Academy, Online",
-    tags: ["AI", "Machine Learning", "Technology", "Workshop"],
-    imageUrl: null,
-  },
-  {
-    id: "4",
-    title: "Community Hackathon",
-    description: "24-hour coding challenge to solve real-world problems. Form teams, brainstorm ideas, and build innovative solutions. Prizes for winning projects!",
-    startDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-    location: "Virtual Event",
-    tags: ["Hackathon", "Coding", "Innovation"],
-    imageUrl: null,
-  },
-];
 
 export default async function EventListPage() {
-  // In a real app, you'd fetch events from an API or database
-  const events = MOCK_EVENTS;
+
+  const events = await eventService.getAllEvents();
 
   return (
     <div className="space-y-6">
