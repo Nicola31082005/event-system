@@ -1,6 +1,8 @@
 import EventListItem from "@/components/EventListItem";
 import eventService from "@/services/eventService";
 
+
+
 export default async function EventListPage() {
 
   const events = await eventService.getAllEvents();

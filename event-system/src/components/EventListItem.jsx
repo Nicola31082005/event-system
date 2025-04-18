@@ -1,8 +1,13 @@
 import Link from 'next/link';
 import { formatDate } from '../lib/utils';
+import { auth, currentUser } from "@clerk/nextjs/server";
 
-export default function EventListItem({ event }) {
+//TODO: Add delete button to the event list item from a client component
+
+export default async function EventListItem({ event }) {
   const { id, title, description, startDate, location, tags, imageUrl } = event;
+  const user = await currentUser();
+  const isOwner = user?.id === event.organizer?.clerkUserId;
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden transition-all hover:shadow-lg">
@@ -64,16 +69,32 @@ export default function EventListItem({ event }) {
               )}
             </div>
 
-            {/* View Details Button */}
-            <Link
-              href={`/events/${id}`}
-              className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center"
-            >
-              View Details
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
+            <div className="flex items-center gap-2">
+              {/* Delete Button (Owner Only) */}
+
+              {isOwner && (
+                <Link
+                  href={`/events/${id}/delete`}
+                  className="text-red-600 hover:text-red-800 font-medium text-sm flex items-center"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Delete
+                </Link>
+              )}
+
+              {/* View Details Button */}
+              <Link
+                href={`/events/${id}`}
+                className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center"
+              >
+                View Details
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
