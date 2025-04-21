@@ -1,21 +1,9 @@
 import Link from 'next/link';
 import { formatRelativeDate, formatTime } from '@/lib/utils';
-
-// This would normally come from a database - get nearest upcoming event
-const UPCOMING_EVENT = {
-  id: "2",
-  title: "Startup Networking Mixer",
-  description: "Connect with founders, investors, and tech enthusiasts in this casual networking event.",
-  startDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-  endDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000),
-  location: "Innovation Hub, Boston",
-  tags: ["Networking", "Business", "Startup"],
-  imageUrl: null,
-};
+import eventService from '@/services/eventService';
 
 export default async function UpcomingEventPage() {
-  // In a real app, you'd fetch the next upcoming event from an API or database
-  const event = UPCOMING_EVENT;
+  const event = (await eventService.getLastestEvents(1))[0];
 
   if (!event) {
     return (
