@@ -162,7 +162,7 @@ export default {
     if (!userId) {
       throw new Error("User not authenticated");
     }
-
+    console.log("userId", userId);
     const dbUser = await userService.getUserByClerkId(userId);
     if (!dbUser) {
       throw new Error("User not found");

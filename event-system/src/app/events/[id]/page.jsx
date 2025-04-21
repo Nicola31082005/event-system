@@ -1,12 +1,41 @@
 import eventService from '@/services/eventService';
+import rsvpService from '@/services/rsvpService';
 import { formatDate } from '../../../lib/utils';
-
+import { auth, currentUser } from '@clerk/nextjs/server';
+import RsvpButton from './RsvpButton';
+import RsvpList from './RsvpList';
 
 export default async function EventPage({ params }) {
-    const { id } = await params;
-    const event = await eventService.getEventById(id);
+  const { id } = params;
 
-    console.log(event);
+  // Get current user
+  const user = await currentUser();
+  const isAuthenticated = !!user;
+
+  // Get event details
+  const event = await eventService.getEventById(id);
+
+  // Check if current user is the event organizer
+  const isOrganizer = user?.id === event?.organizer.clerkUserId;
+
+  // Get current user's RSVP if they have one
+  let currentUserRsvp = null;
+  if (isAuthenticated) {
+    currentUserRsvp = await rsvpService.getUserRsvpForEvent(id);
+  }
+
+  // Get approved RSVPs count to check capacity
+  const approvedRsvps = await rsvpService.getRsvpsByEventId(id, {
+    status: 'APPROVED',
+    paginate: false
+  });
+
+  // If we got paginated results, extract just the rsvps array
+  const rsvpsList = Array.isArray(approvedRsvps) ? approvedRsvps : approvedRsvps.rsvps;
+  const approvedCount = rsvpsList.length;
+
+  // Check if the event is at capacity
+  const isAtCapacity = event.capacity ? approvedCount >= event.capacity : false;
 
   return (
     <div className="container max-w-5xl py-8">
@@ -29,42 +58,49 @@ export default async function EventPage({ params }) {
           )}
         </div>
 
-      {/* Event details */}
-      <div className="space-y-4">
-        <h1 className="text-3xl font-bold">{event.title}</h1>
+        {/* Event details */}
+        <div className="space-y-4">
+          <h1 className="text-3xl font-bold">{event.title}</h1>
 
-        <p>Organized by {event.organizer.name}</p>
+          <p>Organized by {event?.organizer?.name}</p>
 
-        <div className="space-y-2">
-          <div>
-            <strong>When:</strong> {formatDate(event.startDate)}
+          <div className="space-y-2">
+            <div>
+              <strong>When:</strong> {formatDate(event.startDate)}
+            </div>
+
+            <div>
+              <strong>Where:</strong> {event.location}
+            </div>
+
+            <div>
+              <strong>Capacity:</strong> {event?.capacity
+                ? `${approvedCount}/${event?.capacity} attendees`
+                : 'Unlimited attendees'}
+            </div>
           </div>
 
-          <div>
-            <strong>Where:</strong> {event.location}
-          </div>
-
-          <div>
-            <strong>Capacity:</strong> {event.capacity
-              ? `${event.capacity} attendees`
-              : 'Unlimited attendees'}
+          <div className="pt-4 border-t">
+            <h2 className="text-xl font-semibold mb-2">About this event</h2>
+            <p>{event.description}</p>
           </div>
         </div>
 
-        <div className="pt-4 border-t">
-          <h2 className="text-xl font-semibold mb-2">About this event</h2>
-          <p>{event.description}</p>
-        </div>
-      </div>
-
-        {/* RSVP Button Placeholder */}
+        {/* RSVP Button */}
         <div className="mt-6 pt-6 border-t">
-          <button className="bg-blue-500 text-white py-2 px-4 rounded-md font-medium w-full">
-            RSVP to this event
-          </button>
-          <p className="text-sm text-gray-500 mt-2 text-center">
-            RSVP functionality will be implemented later
-          </p>
+          <RsvpButton
+            eventId={id}
+            currentUserRsvp={currentUserRsvp}
+            isAuthenticated={isAuthenticated}
+            isAtCapacity={isAtCapacity}
+            isOrganizer={isOrganizer}
+          />
+        </div>
+
+        {/* Attendees List */}
+        <div className="mt-6 pt-6 border-t">
+          <h2 className="text-xl font-semibold mb-4">Who's coming?</h2>
+          <RsvpList eventId={id} />
         </div>
       </div>
     </div>

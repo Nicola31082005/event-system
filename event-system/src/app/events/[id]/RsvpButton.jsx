@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@clerk/nextjs';
 
 export default function RsvpButton({
   eventId,
@@ -10,6 +12,8 @@ export default function RsvpButton({
   isOrganizer
 }) {
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const { isSignedIn } = useAuth();
 
   // Current RSVP status
   const status = currentUserRsvp?.status || null;
@@ -17,9 +21,10 @@ export default function RsvpButton({
 
   // Function to handle RSVP actions
   const handleRsvp = async (action) => {
-    if (!isAuthenticated) {
-      // Redirect to sign in
-      window.location.href = '/api/auth/signin';
+    if (!isSignedIn) {
+    //TODO Redirect to login page if not authenticated
+      // Redirect to sign in page with return URL
+      // router.push(`/sign-in?redirect_url=${encodeURIComponent(`/events/${eventId}`)}`);
       return;
     }
 
@@ -48,8 +53,9 @@ export default function RsvpButton({
         throw new Error(data.error || 'Failed to update RSVP');
       }
 
-      // Refresh the page to update the UI
-      window.location.reload();
+      // Success! Refresh the page to update the UI
+      alert(action === 'create' ? 'RSVP submitted successfully!' : 'RSVP cancelled');
+      router.refresh();
 
     } catch (error) {
       console.error('RSVP error:', error);
@@ -105,7 +111,7 @@ export default function RsvpButton({
       )}
 
       <button
-        className={`${buttonClass} w-full py-2 px-4 rounded-md font-medium`}
+        className={`${buttonClass} w-full py-2 px-4 rounded-md font-medium disabled:opacity-50`}
         disabled={isLoading}
         onClick={() => {
           if (hasRsvp && buttonAction === 'cancel') {
