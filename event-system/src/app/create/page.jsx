@@ -166,15 +166,13 @@ export default function CreateEvent() {
         // organizerId will be added on the server side from the authenticated user
       };
 
-      console.log("Form submitted:", eventData);
-
       const event = await fetch("/api/events", {
         method: "POST",
         body: JSON.stringify(eventData),
       });
 
       // Redirect to event page or success page
-      router.push("/events/success");
+      router.push("/events");
 
       alert("Event created successfully!");
     } catch (error) {

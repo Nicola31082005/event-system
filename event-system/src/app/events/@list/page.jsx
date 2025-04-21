@@ -1,9 +1,13 @@
 import EventListItem from "@/components/EventListItem";
 import eventService from "@/services/eventService";
+import Link from "next/link";
 
-export default async function EventListPage() {
+export default async function EventListPage({ searchParams }) {
+  // Get the current page from the URL query params or default to page 1
+  const page = searchParams?.page ? parseInt(searchParams.page) : 1;
+  const limit = 3; // Number of events per page
 
-  const events = await eventService.getAllEvents();
+  const { events, pagination } = await eventService.getAllEvents({ page, limit, paginate: true });
 
   return (
     <div className="space-y-6">
@@ -30,34 +34,55 @@ export default async function EventListPage() {
         events.map((event) => <EventListItem key={event.id} event={event} />)
       )}
 
-      <div className="flex justify-center mt-8">
-        <nav className="inline-flex shadow-sm">
-          <a
-            href="#"
-            className="px-3 py-2 bg-white border border-gray-300 text-gray-500 hover:bg-gray-50 rounded-l-md"
-          >
-            Previous
-          </a>
-          <a
-            href="#"
-            className="px-3 py-2 bg-blue-50 border border-blue-500 text-blue-600 hover:bg-blue-100 border-l-0"
-          >
-            1
-          </a>
-          <a
-            href="#"
-            className="px-3 py-2 bg-white border border-gray-300 text-gray-500 hover:bg-gray-50 border-l-0"
-          >
-            2
-          </a>
-          <a
-            href="#"
-            className="px-3 py-2 bg-white border border-gray-300 text-gray-500 hover:bg-gray-50 border-l-0 rounded-r-md"
-          >
-            Next
-          </a>
-        </nav>
-      </div>
+      {/* Pagination */}
+      {pagination.total > 0 && (
+        <div className="flex justify-center mt-8">
+          <nav className="inline-flex shadow-sm">
+            {/* Previous page button */}
+            {page > 1 ? (
+              <Link
+                href={`/events?page=${page - 1}`}
+                className="px-3 py-2 bg-white border border-gray-300 text-gray-500 hover:bg-gray-50 rounded-l-md"
+              >
+                Previous
+              </Link>
+            ) : (
+              <span className="px-3 py-2 bg-gray-100 border border-gray-300 text-gray-400 rounded-l-md cursor-not-allowed">
+                Previous
+              </span>
+            )}
+
+            {/* Page numbers */}
+            {[...Array(pagination.pages).keys()].map((pageNum) => (
+              <Link
+                key={pageNum + 1}
+                href={`/events?page=${pageNum + 1}`}
+                className={`px-3 py-2 border ${
+                  page === pageNum + 1
+                    ? "bg-blue-50 border-blue-500 text-blue-600 hover:bg-blue-100"
+                    : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+                } border-l-0`}
+              >
+                {pageNum + 1}
+              </Link>
+            ))}
+
+            {/* Next page button */}
+            {page < pagination.pages ? (
+              <Link
+                href={`/events?page=${page + 1}`}
+                className="px-3 py-2 bg-white border border-gray-300 text-gray-500 hover:bg-gray-50 border-l-0 rounded-r-md"
+              >
+                Next
+              </Link>
+            ) : (
+              <span className="px-3 py-2 bg-gray-100 border border-gray-300 text-gray-400 border-l-0 rounded-r-md cursor-not-allowed">
+                Next
+              </span>
+            )}
+          </nav>
+        </div>
+      )}
     </div>
   );
 }
