@@ -4,6 +4,7 @@ import { formatDate } from '../../../lib/utils';
 import { auth, currentUser } from '@clerk/nextjs/server';
 import RsvpButton from './RsvpButton';
 import RsvpList from './RsvpList';
+import { notFound } from 'next/navigation';
 
 export default async function EventPage({ params }) {
   const { id } = params;
@@ -14,9 +15,12 @@ export default async function EventPage({ params }) {
 
   // Get event details
   const event = await eventService.getEventById(id);
+  if (!event) {
+    return notFound();
+  }
 
   // Check if current user is the event organizer
-  const isOrganizer = user?.id === event?.organizer.clerkUserId;
+  const isOrganizer = user?.id === event.organizer.clerkUserId;
 
   // Get current user's RSVP if they have one
   let currentUserRsvp = null;
@@ -24,15 +28,15 @@ export default async function EventPage({ params }) {
     currentUserRsvp = await rsvpService.getUserRsvpForEvent(id);
   }
 
-  // Get approved RSVPs count to check capacity
-  const approvedRsvps = await rsvpService.getRsvpsByEventId(id, {
-    status: 'APPROVED',
-    paginate: false
-  });
+  // Get all RSVPs for this event
+  const allRsvps = await rsvpService.getRsvpsByEventId(id, { paginate: false });
 
   // If we got paginated results, extract just the rsvps array
-  const rsvpsList = Array.isArray(approvedRsvps) ? approvedRsvps : approvedRsvps.rsvps;
-  const approvedCount = rsvpsList.length;
+  const rsvpsList = Array.isArray(allRsvps) ? allRsvps : allRsvps.rsvps;
+
+  // Get approved RSVPs count to check capacity
+  const approvedRsvps = rsvpsList.filter(rsvp => rsvp.status === 'APPROVED');
+  const approvedCount = approvedRsvps.length;
 
   // Check if the event is at capacity
   const isAtCapacity = event.capacity ? approvedCount >= event.capacity : false;
@@ -62,7 +66,7 @@ export default async function EventPage({ params }) {
         <div className="space-y-4">
           <h1 className="text-3xl font-bold">{event.title}</h1>
 
-          <p>Organized by {event?.organizer?.name}</p>
+          <p>Organized by {event.organizer.name}</p>
 
           <div className="space-y-2">
             <div>
@@ -74,8 +78,8 @@ export default async function EventPage({ params }) {
             </div>
 
             <div>
-              <strong>Capacity:</strong> {event?.capacity
-                ? `${approvedCount}/${event?.capacity} attendees`
+              <strong>Capacity:</strong> {event.capacity
+                ? `${approvedCount}/${event.capacity} attendees`
                 : 'Unlimited attendees'}
             </div>
           </div>
@@ -100,7 +104,11 @@ export default async function EventPage({ params }) {
         {/* Attendees List */}
         <div className="mt-6 pt-6 border-t">
           <h2 className="text-xl font-semibold mb-4">Who's coming?</h2>
-          <RsvpList eventId={id} />
+          <RsvpList
+            eventId={id}
+            isOrganizer={isOrganizer}
+            initialRsvps={rsvpsList}
+          />
         </div>
       </div>
     </div>

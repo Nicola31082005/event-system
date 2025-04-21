@@ -1,11 +1,48 @@
-import rsvpService from '@/services/rsvpService';
+'use client';
 
-export default async function RsvpList({ eventId }) {
-  // Get all RSVPs for this event, grouped by status
-  const allRsvps = await rsvpService.getRsvpsByEventId(eventId, { paginate: false });
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
-  // If we got paginated results, extract just the rsvps array
-  const rsvps = Array.isArray(allRsvps) ? allRsvps : allRsvps.rsvps;
+export default function RsvpList({ eventId, isOrganizer, initialRsvps }) {
+  const [rsvps, setRsvps] = useState(initialRsvps);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const router = useRouter();
+
+  //TODO check why this is not working not changing the status
+  // Handle RSVP status update
+  const handleUpdateStatus = async (rsvpId, newStatus) => {
+    if (!isOrganizer) return;
+
+    setIsUpdating(true);
+
+    try {
+      const response = await fetch(`/api/events/${eventId}/rsvp/${rsvpId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update RSVP');
+      }
+
+      // Update the local state to reflect the change
+      setRsvps(rsvps.map(rsvp =>
+        rsvp.id === rsvpId ? { ...rsvp, status: newStatus } : rsvp
+      ));
+
+      // Refresh the page data
+      router.refresh();
+    } catch (error) {
+      console.error('Error updating RSVP:', error);
+      alert(error.message || 'Failed to update RSVP status');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   if (!rsvps || rsvps.length === 0) {
     return (
@@ -30,7 +67,12 @@ export default async function RsvpList({ eventId }) {
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {approvedRsvps.map(rsvp => (
-              <AttendeeCard key={rsvp.id} rsvp={rsvp} />
+              <AttendeeCard
+                key={rsvp.id}
+                rsvp={rsvp}
+                isOrganizer={isOrganizer}
+                onUpdateStatus={handleUpdateStatus}
+              />
             ))}
           </div>
         </div>
@@ -44,7 +86,12 @@ export default async function RsvpList({ eventId }) {
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {waitlistRsvps.map(rsvp => (
-              <AttendeeCard key={rsvp.id} rsvp={rsvp} />
+              <AttendeeCard
+                key={rsvp.id}
+                rsvp={rsvp}
+                isOrganizer={isOrganizer}
+                onUpdateStatus={handleUpdateStatus}
+              />
             ))}
           </div>
         </div>
@@ -58,7 +105,12 @@ export default async function RsvpList({ eventId }) {
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {pendingRsvps.map(rsvp => (
-              <AttendeeCard key={rsvp.id} rsvp={rsvp} />
+              <AttendeeCard
+                key={rsvp.id}
+                rsvp={rsvp}
+                isOrganizer={isOrganizer}
+                onUpdateStatus={handleUpdateStatus}
+              />
             ))}
           </div>
         </div>
@@ -67,7 +119,7 @@ export default async function RsvpList({ eventId }) {
   );
 }
 
-function AttendeeCard({ rsvp }) {
+function AttendeeCard({ rsvp, isOrganizer, onUpdateStatus }) {
   const statusColors = {
     APPROVED: 'bg-green-100 text-green-800',
     WAITLIST: 'bg-blue-100 text-blue-800',
@@ -80,8 +132,8 @@ function AttendeeCard({ rsvp }) {
   const defaultImage = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=random`;
 
   return (
-    <div className="flex items-center space-x-3 p-3 border rounded-lg">
-      <div className="relative h-10 w-10 rounded-full overflow-hidden flex-shrink-0">
+    <div className="flex items-center p-3 border rounded-lg">
+      <div className="relative h-10 w-10 rounded-full overflow-hidden flex-shrink-0 mr-3">
         <img
           src={user.imageUrl || defaultImage}
           alt={user.name || 'User'}
@@ -94,6 +146,36 @@ function AttendeeCard({ rsvp }) {
           {rsvp.status}
         </span>
       </div>
+
+      {/* Organizer Controls */}
+      {isOrganizer && rsvp.status === 'PENDING' && (
+        <div className="ml-2 flex space-x-2">
+          <button
+            onClick={() => onUpdateStatus(rsvp.id, 'APPROVED')}
+            className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
+          >
+            Approve
+          </button>
+          <button
+            onClick={() => onUpdateStatus(rsvp.id, 'DENIED')}
+            className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+          >
+            Deny
+          </button>
+        </div>
+      )}
+
+      {/* Option to move from waitlist to approved */}
+      {isOrganizer && rsvp.status === 'WAITLIST' && (
+        <div className="ml-2">
+          <button
+            onClick={() => onUpdateStatus(rsvp.id, 'APPROVED')}
+            className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
+          >
+            Approve
+          </button>
+        </div>
+      )}
     </div>
   );
 }
