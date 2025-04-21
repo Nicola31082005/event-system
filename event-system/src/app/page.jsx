@@ -1,6 +1,9 @@
+import eventService from "@/services/eventService";
 import Link from "next/link";
 
-export default function Home() {
+export default async function Home() {
+  const latestEvents = await eventService.getLastestEvents(3);
+
   return (
     <div className="flex flex-col gap-12 px-4 py-8 max-w-7xl mx-auto">
       {/* Hero Section */}
@@ -22,17 +25,17 @@ export default function Home() {
 
       {/* Featured Events Section */}
       <section className="py-8">
-        <h2 className="text-3xl font-bold mb-8 text-center">Featured Events</h2>
+        <h2 className="text-3xl font-bold mb-8 text-center">Latest Events</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {/* This would normally be populated from your database */}
-          {[1, 2, 3].map((item) => (
-            <div key={item} className="border rounded-lg overflow-hidden shadow-md hover:shadow-lg transition">
+          {latestEvents.map((event) => (
+            <div key={event.id} className="border rounded-lg overflow-hidden shadow-md hover:shadow-lg transition">
               <div className="bg-gray-200 h-48 w-full"></div>
               <div className="p-4">
-                <h3 className="font-bold text-xl mb-2">Event Title {item}</h3>
+                <h3 className="font-bold text-xl mb-2">Event Title {event.title}</h3>
                 <p className="text-sm text-gray-600 mb-2">Date • Location</p>
                 <p className="mb-4">Brief description of the event that gives attendees an idea of what to expect.</p>
-                <Link href={`/events/${item}`} className="text-blue-600 font-semibold hover:underline">
+                <Link href={`/events/${event.id}`} className="text-blue-600 font-semibold hover:underline">
                   View Details
                 </Link>
               </div>

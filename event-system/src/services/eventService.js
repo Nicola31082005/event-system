@@ -13,6 +13,15 @@ export default {
     });
   },
 
+  getLastestEvents: async (numberToGet = 1000) => {
+    return await prisma.event.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: numberToGet,
+    });
+  },
+
   getEventById: async (id) => {
     return await prisma.event.findUnique({
       where: { id },
