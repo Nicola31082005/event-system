@@ -1,6 +1,6 @@
 import eventService from "@/services/eventService";
 import Link from "next/link";
-
+import { formatDate } from "@/lib/utils";
 export default async function Home() {
   const latestEvents = await eventService.getLastestEvents(3);
 
@@ -32,9 +32,9 @@ export default async function Home() {
             <div key={event.id} className="border rounded-lg overflow-hidden shadow-md hover:shadow-lg transition">
               <div className="bg-gray-200 h-48 w-full"></div>
               <div className="p-4">
-                <h3 className="font-bold text-xl mb-2">Event Title {event.title}</h3>
-                <p className="text-sm text-gray-600 mb-2">Date • Location</p>
-                <p className="mb-4">Brief description of the event that gives attendees an idea of what to expect.</p>
+                <h3 className="font-bold text-xl mb-2">{event.title}</h3>
+                <p className="text-sm text-gray-600 mb-2">Date {formatDate(event.startDate)} • Location {event.location}</p>
+                <p className="mb-4">{event.description}</p>
                 <Link href={`/events/${event.id}`} className="text-blue-600 font-semibold hover:underline">
                   View Details
                 </Link>
