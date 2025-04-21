@@ -1,13 +1,41 @@
+'use client';
+
 import Link from 'next/link';
 import { formatDate } from '../lib/utils';
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { useUser } from "@clerk/nextjs";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
-//TODO: Add delete button to the event list item from a client component
-
-export default async function EventListItem({ event }) {
+export default function EventListItem({ event }) {
   const { id, title, description, startDate, location, tags, imageUrl } = event;
-  const user = await currentUser();
+  const { user } = useUser();
   const isOwner = user?.id === event.organizer?.clerkUserId;
+  const router = useRouter();
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!confirm('Are you sure you want to delete this event?')) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/events/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete event');
+      }
+
+      router.refresh();
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      alert('Failed to delete event. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden transition-all hover:shadow-lg">
@@ -71,17 +99,17 @@ export default async function EventListItem({ event }) {
 
             <div className="flex items-center gap-2">
               {/* Delete Button (Owner Only) */}
-
               {isOwner && (
-                <Link
-                  href={`/events/${id}/delete`}
-                  className="text-red-600 hover:text-red-800 font-medium text-sm flex items-center"
+                <button
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="text-red-600 hover:text-red-800 font-medium text-sm flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
-                  Delete
-                </Link>
+                  {isDeleting ? 'Deleting...' : 'Delete'}
+                </button>
               )}
 
               {/* View Details Button */}

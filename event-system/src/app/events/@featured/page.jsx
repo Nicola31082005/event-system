@@ -17,7 +17,7 @@ export default async function FeaturedEventPage() {
   // throw new Error("Testing featured event error boundary");
 
   // To test loading state - uncomment these lines:
-//   await new Promise(resolve => setTimeout(resolve, 5000));
+  //   await new Promise(resolve => setTimeout(resolve, 5000));
 
   // In a real app, you'd fetch the featured event from an API or database
   const event = FEATURED_EVENT;
