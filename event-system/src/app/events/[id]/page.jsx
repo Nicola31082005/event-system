@@ -1,56 +1,32 @@
 import eventService from '@/services/eventService';
-import { notFound } from 'next/navigation';
+import { formatDate } from '../../../lib/utils';
 
-
-
-// async function getEvent(id) {
-//   // In a real app, fetch from database
-//   // For demo purposes, return mock data
-//   return {
-//     id,
-//     title: 'Summer Coding Bootcamp',
-//     description: 'Join us for an intensive coding bootcamp where you will learn the latest technologies and frameworks.',
-//     date: new Date('2023-08-15T10:00:00'),
-//     location: 'Tech Hub, 123 Innovation Street, San Francisco, CA',
-//     imageUrl: 'https://images.unsplash.com/photo-1531123414780-f74242c2b052',
-//     capacity: 50,
-//     attendeeCount: 42,
-//     organizer: {
-//       name: 'Tech Learning Collective',
-//       imageUrl: 'https://images.unsplash.com/photo-1531123414780-f74242c2b052',
-//     }
-//   };
-// }
-
-// Helper function to format date
-function formatDate(date) {
-  return new Date(date).toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-}
 
 export default async function EventPage({ params }) {
     const { id } = await params;
-  const event = await eventService.getEventById(id);
+    const event = await eventService.getEventById(id);
 
-  if (!event) return notFound();
+    console.log(event);
 
   return (
     <div className="container max-w-5xl py-8">
       <div className="space-y-6">
         {/* Event image */}
         <div className="rounded-lg overflow-hidden" style={{ maxWidth: '400px', margin: '0 auto' }}>
-          <img
-            src={event.imageUrl}
-            alt={event.title}
-            className="w-full h-64 object-cover"
-            style={{ maxHeight: '250px' }}
-          />
+          {event.imageUrl ? (
+            <img
+              src={event.imageUrl}
+              alt={event.title}
+              className="w-full h-64 object-cover"
+              style={{ maxHeight: '250px' }}
+            />
+          ) : (
+            <div className="w-full h-64 bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-20 w-20 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+          )}
         </div>
 
       {/* Event details */}
@@ -61,7 +37,7 @@ export default async function EventPage({ params }) {
 
         <div className="space-y-2">
           <div>
-            <strong>When:</strong> {formatDate(event.date)}
+            <strong>When:</strong> {formatDate(event.startDate)}
           </div>
 
           <div>
@@ -70,7 +46,7 @@ export default async function EventPage({ params }) {
 
           <div>
             <strong>Capacity:</strong> {event.capacity
-              ? `${event.attendeeCount}/${event.capacity} attendees`
+              ? `${event.capacity} attendees`
               : 'Unlimited attendees'}
           </div>
         </div>
