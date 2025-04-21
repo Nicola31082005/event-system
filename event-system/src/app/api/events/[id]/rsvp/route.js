@@ -1,23 +1,7 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import prisma from "@/lib/prisma";
+import eventService from "@/services/eventService";
 
 // POST /api/events/[id]/rsvp - Create a new RSVP
 export async function POST(request, { params }) {
-  const session = await getServerSession(authOptions);
-
-  // Check if user is authenticated
-  if (!session || !session.user) {
-    return NextResponse.json(
-      { error: "You must be signed in to RSVP" },
-      { status: 401 }
-    );
-  }
-
-  const { id: eventId } = params;
-  const { status = "PENDING" } = await request.json();
-
   try {
     // Get the event
     const event = await prisma.event.findUnique({
